@@ -1,7 +1,9 @@
+import { StudentBilling } from "./Billing";
 import { useState, useEffect } from "react";
 import { api } from "../api";
 import { Field, Table } from "../ui";
 import { type Row, statuses } from "../shared";
+import { Guardians } from "./Guardians";
 export function StudentDialog({
   student,
   state,
@@ -16,13 +18,13 @@ export function StudentDialog({
   date: string;
   director: boolean;
   close: () => void;
-  save: (p: string, v: unknown) => Promise<Row | undefined>;
+  save: (path: string, value: unknown) => Promise<Row | undefined>;
   issue: () => void;
 }) {
   const [tab, T] = useState("기본 정보"),
     [history, H] = useState<Row[]>([]),
     [err, E] = useState("");
-  const current = state.info.find((x: Row) => x.id === student.id) || {},
+  const current = state.info.find((item: Row) => item.id === student.id) || {},
     [v, V] = useState<Row>({
       rev: 0,
       status: "active",
@@ -31,7 +33,7 @@ export function StudentDialog({
       birthYear: "",
       ...current,
     }),
-    set = (k: string, x: any) => V({ ...v, [k]: x });
+    set = (k: string, item: any) => V({ ...v, [k]: item });
   useEffect(() => {
     api("student-attendance?id=" + student.id)
       .then((d) => H(d.attendance))
@@ -57,7 +59,13 @@ export function StudentDialog({
           <button onClick={close}>닫기</button>
         </div>
         <div className="tabs">
-          {["기본 정보", "반", "출결"].map((t) => (
+          {[
+            "기본 정보",
+            "반",
+            "출결",
+            "보호자",
+            ...(state.billingRead ? ["수납"] : []),
+          ].map((t) => (
             <button
               className={t === tab ? "active" : ""}
               key={t}
@@ -79,7 +87,9 @@ export function StudentDialog({
                   ...v,
                   studentId: student.id,
                   birthYear: v.birthYear ? Number(v.birthYear) : null,
-                }).then(saved => { if (saved) V(saved); });
+                }).then((saved) => {
+                  if (saved) V(saved);
+                });
               }}
             >
               <fieldset disabled={!director}>
@@ -129,7 +139,7 @@ export function StudentDialog({
                 </div>
                 {v.birthYear &&
                   new Date().getFullYear() - Number(v.birthYear) <= 14 && (
-                    <p className="badge">14세 미만 확인 필요</p>
+                    <p className="badge">14세 미만일 수 있음</p>
                   )}
                 <div className="toolbar">
                   <button className="primary">운영 정보 저장하기</button>
@@ -143,17 +153,23 @@ export function StudentDialog({
             </form>
           </>
         )}
+        {tab === "수납" && <StudentBilling sid={student.id} />}
+        {tab === "보호자" && <Guardians sid={student.id} director={director} />}
         {tab === "반" && (
           <Table heads={["반", "들어온 날", "나간 날"]}>
             {state.enrollments
-              .filter((x: Row) => x.studentId === student.id)
-              .map((x: Row) => (
-                <tr key={x.id}>
+              .filter((item: Row) => item.studentId === student.id)
+              .map((item: Row) => (
+                <tr key={item.id}>
                   <td>
-                    {state.classes.find((c: Row) => c.id === x.classId)?.name}
+                    {
+                      state.classes.find(
+                        (candidate: Row) => candidate.id === item.classId,
+                      )?.name
+                    }
                   </td>
-                  <td>{x.joined}</td>
-                  <td>{x.left || "계속 다님"}</td>
+                  <td>{item.joined}</td>
+                  <td>{item.left || "계속 다님"}</td>
                 </tr>
               ))}
           </Table>
@@ -162,12 +178,12 @@ export function StudentDialog({
           <>
             <p className="error">{err}</p>
             <Table heads={["수업 날짜", "출결", "메모", "고친 사람"]}>
-              {history.map((x) => (
-                <tr key={x.id}>
-                  <td>{x.date || x.lessonId.split(":")[1] || date}</td>
-                  <td>{statuses[x.status]}</td>
-                  <td>{x.note}</td>
-                  <td>{x.updatedBy}</td>
+              {history.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.date || item.lessonId.split(":")[1] || date}</td>
+                  <td>{statuses[item.status]}</td>
+                  <td>{item.note}</td>
+                  <td>{item.updatedBy}</td>
                 </tr>
               ))}
             </Table>

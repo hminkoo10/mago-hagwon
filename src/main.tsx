@@ -1,3 +1,4 @@
+import { Billing } from "./screens/Billing";
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
@@ -12,6 +13,7 @@ import { Settings } from "./screens/Settings";
 import { ClassEditor } from "./screens/ClassEditor";
 import { StudentDialog } from "./screens/StudentDialog";
 import { Tablet } from "./screens/Kiosk";
+import { Guardian } from "./screens/Guardian";
 function App() {
   const [user, U] = useState<Row | null>(null),
     [state, S] = useState<Row | null>(null),
@@ -50,7 +52,11 @@ function App() {
       return await fn();
     } catch (e) {
       E((e as Error).message);
-      if (e instanceof ApiError && e.status === 409) { C(null); Q(null); await refresh(); }
+      if (e instanceof ApiError && e.status === 409) {
+        C(null);
+        Q(null);
+        await refresh();
+      }
     } finally {
       B(false);
     }
@@ -66,7 +72,7 @@ function App() {
   useEffect(() => {
     const id = setInterval(() => {
       api("me")
-        .then((x) => U(x.user))
+        .then((item) => U(item.user))
         .catch((e) => {
           U(null);
           S(null);
@@ -89,6 +95,7 @@ function App() {
         {error && <p role="alert">{error}</p>}
       </div>
     );
+  if (user.role === "guardian" && user.academy) return <Guardian user={user} />;
   if (
     user.role === "student" ||
     !user.academy ||
@@ -116,22 +123,26 @@ function App() {
     );
   const st = state,
     studentName = (id: string) =>
-      st.students.find((x: Row) => x.id === id)?.name || "명단에서 지운 학생",
+      st.students.find((item: Row) => item.id === id)?.name ||
+      "명단에서 지운 학생",
     teacherName = (id: string) =>
-      st.members.find((x: Row) => x.id === id)?.name || "선생님",
+      st.members.find((item: Row) => item.id === id)?.name || "선생님",
     info = (id: string) =>
-      st.info.find((x: Row) => x.id === id) || { status: "active" },
-    enrolled = (l: Row) =>
+      st.info.find((item: Row) => item.id === id) || { status: "active" },
+    enrolled = (lesson: Row) =>
       st.enrollments.filter(
-        (x: Row) =>
-          x.classId === l.classId &&
-          x.joined <= date &&
-          (!x.left || x.left >= date) &&
-          st.students.some((s: Row) => s.id === x.studentId),
+        (item: Row) =>
+          item.classId === lesson.classId &&
+          item.joined <= date &&
+          (!item.left || item.left >= date) &&
+          st.students.some((value: Row) => value.id === item.studentId),
       ),
-    attendance = (l: Row, id: string) =>
-      st.attendance.find((x: Row) => x.lessonId === l.id && x.studentId === id),
-    chosen = st.lessons.find((l: Row) => l.id === lesson) || st.lessons[0];
+    attendance = (lesson: Row, id: string) =>
+      st.attendance.find(
+        (item: Row) => item.lessonId === lesson.id && item.studentId === id,
+      ),
+    chosen =
+      st.lessons.find((item: Row) => item.id === lesson) || st.lessons[0];
   return (
     <div className="shell">
       <aside className="sidebar">
@@ -145,27 +156,32 @@ function App() {
             "출결",
             "반·시간표",
             "학생",
+            ...(st.billingRead ? ["수납"] : []),
             ...(director ? ["운영 설정"] : []),
-          ].map((p, i) => (
+          ].map((path) => (
             <button
-              className={p === page ? "active" : ""}
-              key={p}
-              onClick={() => P(p)}
+              className={path === page ? "active" : ""}
+              key={path}
+              onClick={() => P(path)}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   d={
-                    [
-                      "M3 10 12 3l9 7v11H3ZM9 21v-8h6v8",
-                      "M4 5h16v16H4ZM3 10h18M8 3v4m8-4v4M8 15l3 3 5-5",
-                      "M3 4h18v17H3ZM8 4v17m7-17v17M3 10h18m-18 5h18",
-                      "M8 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8M2 22v-4a6 6 0 0 1 12 0v4M17 3v8m-4-4h8",
-                      "M4 7h16M4 12h16M4 17h16",
-                    ][i]
+                    (
+                      {
+                        오늘: "M3 10 12 3l9 7v11H3ZM9 21v-8h6v8",
+                        출결: "M4 5h16v16H4ZM3 10h18M8 3v4m8-4v4M8 15l3 3 5-5",
+                        "반·시간표":
+                          "M3 4h18v17H3ZM8 4v17m7-17v17M3 10h18m-18 5h18",
+                        학생: "M8 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8M2 22v-4a6 6 0 0 1 12 0v4M17 3v8m-4-4h8",
+                        수납: "M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2ZM9 8h6M9 12h6M9 16h3",
+                        "운영 설정": "M4 7h16M4 12h16M4 17h16",
+                      } as Record<string, string>
+                    )[path]
                   }
                 />
               </svg>
-              {p}
+              {path}
             </button>
           ))}
         </nav>
@@ -190,6 +206,7 @@ function App() {
                     출결: "모두 출석으로 바꾼 뒤, 다른 학생만 고쳐요.",
                     "반·시간표": "반과 한 주 수업 시간을 함께 봐요.",
                     학생: "통합 클라우드 명단에 운영 정보를 붙여요.",
+                    수납: "청구서를 만들고 받은 돈을 적어요.",
                     "운영 설정": "강의실과 태블릿을 준비해요.",
                   } as Row
                 )[page]
@@ -213,22 +230,88 @@ function App() {
             {error}
           </div>
         )}
-        {page === "오늘" && <Today st={st} date={date} studentName={studentName} teacherName={teacherName} enrolled={enrolled} attendance={attendance} L={L} P={P} Q={(v) => Q(v || null)} />}
-        {page === "출결" && <Attendance st={st} date={date} busy={busy} chosen={chosen} studentName={studentName} enrolled={enrolled} attendance={attendance} run={run} save={save} L={L} Q={(v) => Q(v || null)} />}
-        {page === "반·시간표" && <Timetable st={st} director={director} user={user} date={date} week={week} filter={filter} room={room} teacherName={teacherName} L={L} P={P} D={D} F={F} R={R} C={C} />}
-        {page === "학생" && <Students st={st} director={director} date={date} info={info} run={run} refresh={refresh} Q={(v) => Q(v || null)} Pins={Pins} />}
-        {page === "운영 설정" && director && <Settings st={st} settings={settings} code={code} run={run} save={save} refresh={refresh} Pins={Pins} Code={Code} />}
+        {page === "오늘" && (
+          <Today
+            st={st}
+            date={date}
+            studentName={studentName}
+            teacherName={teacherName}
+            enrolled={enrolled}
+            attendance={attendance}
+            L={L}
+            P={P}
+            Q={(value) => Q(value || null)}
+          />
+        )}
+        {page === "출결" && (
+          <Attendance
+            st={st}
+            date={date}
+            busy={busy}
+            chosen={chosen}
+            studentName={studentName}
+            enrolled={enrolled}
+            attendance={attendance}
+            run={run}
+            save={save}
+            L={L}
+            Q={(value) => Q(value || null)}
+          />
+        )}
+        {page === "반·시간표" && (
+          <Timetable
+            st={st}
+            director={director}
+            user={user}
+            date={date}
+            week={week}
+            filter={filter}
+            room={room}
+            teacherName={teacherName}
+            L={L}
+            P={P}
+            D={D}
+            F={F}
+            R={R}
+            C={C}
+          />
+        )}
+        {page === "수납" && <Billing st={st} director={director} />}
+        {page === "학생" && (
+          <Students
+            st={st}
+            director={director}
+            date={date}
+            info={info}
+            run={run}
+            refresh={refresh}
+            Q={(value) => Q(value || null)}
+            Pins={Pins}
+          />
+        )}
+        {page === "운영 설정" && director && (
+          <Settings
+            st={st}
+            settings={settings}
+            code={code}
+            run={run}
+            save={save}
+            refresh={refresh}
+            Pins={Pins}
+            Code={Code}
+          />
+        )}
         {pins.length > 0 && (
           <div className="overlay">
             <div className="modal">
               <h2>새 학생 번호</h2>
               <p>이 창을 닫으면 다시 볼 수 없어요. 학생에게 알려 주세요.</p>
               <Table heads={["학생", "번호"]}>
-                {pins.map((x) => (
-                  <tr key={x.studentId}>
-                    <td>{studentName(x.studentId)}</td>
+                {pins.map((item) => (
+                  <tr key={item.studentId}>
+                    <td>{studentName(item.studentId)}</td>
                     <td>
-                      <strong>{x.pin}</strong>
+                      <strong>{item.pin}</strong>
                     </td>
                   </tr>
                 ))}
@@ -243,13 +326,13 @@ function App() {
             state={st}
             busy={busy}
             close={() => C(null)}
-            submit={(v) =>
+            submit={(value) =>
               void run(async () => {
-                await save("classes", v);
+                await save("classes", value);
                 C(null);
               })
             }
-            save={(p, v) => run(() => save(p, v))}
+            save={(path, value) => run(() => save(path, value))}
             date={date}
           />
         )}
@@ -259,8 +342,11 @@ function App() {
             state={st}
             date={date}
             director={director}
-            close={() => Q(null)}
-            save={(p, v) => run(() => save(p, v))}
+            close={() => {
+              Q(null);
+              void run(refresh);
+            }}
+            save={(path, value) => run(() => save(path, value))}
             issue={() =>
               void run(async () => {
                 Pins((await api("pins", { studentId: selected.id })).pins);
@@ -277,4 +363,3 @@ function App() {
 createRoot(document.getElementById("root")!).render(
   location.pathname === "/kiosk" ? <Tablet /> : <App />,
 );
-

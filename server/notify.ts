@@ -2,6 +2,6 @@
 export function notify(_event: {
   academyId: number;
   studentId: string;
-  kind: "in" | "out" | "absent";
+  kind: "in" | "out" | "absent" | "invoice_sent";
   at: string;
 }) {}

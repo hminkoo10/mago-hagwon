@@ -74,6 +74,9 @@ button,
   text-decoration: none;
   display: inline-block;
 }
+a.button {
+  color: inherit;
+}
 button:hover {
   background: #f9fafb;
 }
@@ -579,19 +582,217 @@ fieldset {
   }
 }
 
-.sidebar { align-self: flex-start; overflow-y: auto; }
-a[href="/kiosk"] { color: #F76B15; text-decoration: none; }
-a[href="/kiosk"]:hover { text-decoration: underline; }
+.sidebar {
+  align-self: flex-start;
+  overflow-y: auto;
+}
+a[href="/kiosk"] {
+  color: #f76b15;
+  text-decoration: none;
+}
+a[href="/kiosk"]:hover {
+  text-decoration: underline;
+}
 @media (max-width: 640px) {
-  .attendance .table-wrap { overflow: visible; border: 0; }
-  .attendance table, .attendance tbody { display: block; white-space: normal; }
-  .attendance thead { display: none; }
-  .attendance tr { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #e5e8eb; border-radius: 8px; padding: 10px; margin-bottom: 12px; }
-  .attendance td { display: block; padding: 6px 0; border: 0; min-width: 0; }
-  .attendance td:nth-child(n+3) { grid-column: 1 / -1; }
-  .attendance td:nth-child(2) { text-align: right; }
-  .attendance .segments { display: flex; flex-wrap: wrap; gap: 4px; }
-  .attendance .segments button { padding: 7px 9px; }
-  .attendance td input { width: 100%; }
-  .attendance td:last-child { font-size: 12px; overflow-wrap: anywhere; }
+  .attendance .table-wrap {
+    overflow: visible;
+    border: 0;
+  }
+  .attendance table,
+  .attendance tbody {
+    display: block;
+    white-space: normal;
+  }
+  .attendance thead {
+    display: none;
+  }
+  .attendance tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid #e5e8eb;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+  .attendance td {
+    display: block;
+    padding: 6px 0;
+    border: 0;
+    min-width: 0;
+  }
+  .attendance td:nth-child(n + 3) {
+    grid-column: 1 / -1;
+  }
+  .attendance td:nth-child(2) {
+    text-align: right;
+  }
+  .attendance .segments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .attendance .segments button {
+    padding: 7px 9px;
+  }
+  .attendance td input {
+    width: 100%;
+  }
+  .attendance td:last-child {
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+}
+
+.consent-warning {
+  display: block;
+  color: #b34b00;
+  font-size: 12px;
+  white-space: normal;
+}
+.guardians,
+.guardian-home {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.guardians section {
+  margin-top: 16px;
+}
+.guardians label {
+  display: block;
+  margin: 8px 0;
+}
+.invite-code {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.guardian-home {
+  max-width: 720px;
+  margin: auto;
+  padding: 20px 14px;
+}
+.guardian-home nav {
+  margin-bottom: 22px;
+}
+.guardian-lesson {
+  border-bottom: 1px solid #e5e8eb;
+  padding: 10px 0;
+}
+.guardian-lesson:last-child {
+  border: 0;
+}
+.tabs {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+@media (max-width: 560px) {
+  .guardian-home header {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+.billing {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.billing label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 6px;
+}
+.billing input,
+.billing select {
+  max-width: 100%;
+  min-width: 0;
+}
+.billing-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 12px;
+}
+.billing-cards article {
+  border: 1px solid #e5e8eb;
+  padding: 14px;
+  border-radius: 8px;
+}
+.receipt {
+  background: white;
+  color: black;
+  padding: 20px;
+}
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .receipt,
+  .receipt * {
+    visibility: visible;
+    color: black;
+  }
+  .receipt {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+  .receipt button {
+    display: none;
+  }
+  .overlay,
+  .modal {
+    position: static;
+    overflow: visible;
+    max-height: none;
+    border: 0;
+    box-shadow: none;
+  }
+}
+.billing-list {
+  width: 100%;
+}
+.billing-list table {
+  width: 100%;
+  white-space: normal;
+}
+.billing-list td {
+  overflow-wrap: anywhere;
+}
+.billing-list button {
+  display: block;
+  margin-top: 6px;
+}
+@media (max-width: 1000px) {
+  .billing-list table,
+  .billing-list tbody {
+    display: block;
+  }
+  .billing-list thead {
+    display: none;
+  }
+  .billing-list tr {
+    display: block;
+    border: 1px solid #e5e8eb;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 10px 0;
+  }
+  .billing-list td {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    border: 0;
+    padding: 5px 0;
+  }
+  .billing-list td::before {
+    content: attr(data-label);
+    color: #64748b;
+    min-width: 76px;
+  }
+  .billing-list p {
+    margin: 0;
+  }
+  .billing .toolbar,
+  .billing form {
+    max-width: 100%;
+  }
 }
